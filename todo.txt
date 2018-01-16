@@ -1,0 +1,25 @@
+remember line position when scrolling to shorter lines
+undo/redo using stacks
+help dialogue CTRL-H
+longer intro message
+CTRL-N mirrors quit but opens a no name
+CTRL-O restarts with new file (uses "modified" quit dialogue)
+find highlights bg instead of fg
+find highlights ALL instances (handle saved_hl restoration)
+replace prompt after find
+line nums
+soft indent / auto indent
+SHIFT arrow keys select text (inverts bg)
+CTRL-A selects line (from tab) and repeated presses select groups at the same tab level
+CTRL-/ comments selected lines
+CTRL arrow keys jump to "words"
+shift tab and tab when selected
+cut copy pasta
+use ncurses
+python syntax highlighting
+timing for highlight and periodic resize to reduce load (benchmark with echo pipe)
+~.femtorc file for lang settings/hl colors (and hl words), tab size, soft tab, soft wrap, etc.
+
+http://bluesock.org/~willkg/dev/ansi.html
+https://vt100.net/docs/vt102-ug/chapter5.html#S5.5
+https://en.wikipedia.org/wiki/ANSI_escape_code
