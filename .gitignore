@@ -1,6 +1,7 @@
 /*
 !src
 !inc
+!obj
 !*.md
 !*.txt
 !Makefile
