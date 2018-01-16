@@ -1,5 +1,7 @@
 #include "../inc/display.h"
 
+extern int LINE_NUM_WIDTH;
+
 char* ckw[] = {
     "switch", "if", "while", "for", "break", "continue", "return", "else",
     "struct", "union", "typedef", "static", "enum", "class", "case",
@@ -279,6 +281,11 @@ void drawRows(abuf* ab){
                 abappend(ab, "~", 1);
             }
         }else{
+            char lineNum[16];
+            snprintf(lineNum, sizeof(lineNum), "%08d", i + 1);
+            char buf[32];
+            snprintf(buf, sizeof(buf), "\x1b[7m%s\x1b[m", &lineNum[8 - LINE_NUM_WIDTH]);
+            abappend(ab, buf, strlen(buf));
             int len = E.row[currentRow].rsize - E.scrollCol;
             if (len < 0) {
                 len = 0;
@@ -328,7 +335,7 @@ void refresh(){
     drawStatus(&ab);
     drawMessageBar(&ab);
     char buf[16];
-    snprintf(buf, sizeof(buf), "\x1b[%d;%dH", E.cy - E.scrollRow + 1, E.rx - E.scrollCol + 1);
+    snprintf(buf, sizeof(buf), "\x1b[%d;%dH", E.cy - E.scrollRow + 1, E.rx - E.scrollCol + 1 + LINE_NUM_WIDTH);
     abappend(&ab, buf, strlen(buf));
     abappend(&ab, "\x1b[?25h", 6);
     write(STDOUT_FILENO, ab.b, ab.len);

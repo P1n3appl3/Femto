@@ -2,6 +2,10 @@
 
 #define CTRLKEY(k) ((k) & 0x1f)
 
+int TAB_SIZE = 4;
+int MESSAGE_TIMER = 5;
+int LINE_NUM_WIDTH = 3;
+
 void initEditor(){
     E.cx = 0;
     E.cy = 0;
@@ -19,6 +23,7 @@ void initEditor(){
         die("getWindowSize");
     }
     E.height -= 2;
+    E.width -= LINE_NUM_WIDTH;
 }
 
 void detectLang(){

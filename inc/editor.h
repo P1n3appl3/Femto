@@ -1,8 +1,9 @@
 #ifndef EDITOR_H
 #define EDITOR_H
 
-#define TAB_SIZE 4
-#define MESSAGE_TIMER 5
+extern int MESSAGE_TIMER;
+extern int LINE_NUM_WIDTH;
+extern int TAB_SIZE;
 
 #include <string.h>
 #include <stdarg.h>

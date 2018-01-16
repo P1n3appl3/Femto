@@ -7,7 +7,7 @@ CTRL-O restarts with new file (uses "modified" quit dialogue)
 find highlights bg instead of fg
 find highlights ALL instances (handle saved_hl restoration)
 replace prompt after find
-line nums
+line nums react to file len
 soft indent / auto indent
 SHIFT arrow keys select text (inverts bg)
 CTRL-A selects line (from tab) and repeated presses select groups at the same tab level
