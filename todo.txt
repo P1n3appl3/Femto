@@ -2,7 +2,6 @@ CTRL-H help dialogue (R,H,S,Q,N,O,F)
 Save-as support
 longer intro message
 replace prompt after find
-line nums react to file len IMPORTANT
 auto indent on newline
 SHIFT arrow keys select text (inverts bg)
 find selects

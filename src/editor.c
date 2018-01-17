@@ -3,6 +3,8 @@
 #define CTRLKEY(k) ((k) & 0x1f)
 
 extern int TAB_SIZE;
+extern int ENABLE_LINE_NUMS;
+extern int LINE_NUM_WIDTH;
 
 void initEditor(){
     for (int i = 0; i < E.numrows; ++i) {
@@ -153,6 +155,16 @@ void insertRow(int at, char* s, size_t len){
     renderRow(&E.row[at]);
     ++E.numrows;
     ++E.dirty;
+    if (ENABLE_LINE_NUMS) {
+        int temp = E.numrows;
+        for (int i = LINE_NUM_WIDTH; i > 0; --i) {
+            temp /= 10;
+        }
+        if (temp != 0) {
+            ++LINE_NUM_WIDTH;
+            --E.width;
+        }
+    }
 }
 
 void freeRow(erow* row){
@@ -244,6 +256,16 @@ void deleteRow(int at){
     }
     --E.numrows;
     ++E.dirty;
+    if (ENABLE_LINE_NUMS) {
+        int temp = E.numrows;
+        for (int i = LINE_NUM_WIDTH - 1; i > 0; --i) {
+            temp /= 10;
+        }
+        if (temp == 0) {
+            --LINE_NUM_WIDTH;
+            ++E.width;
+        }
+    }
 }
 
 void insertNewline(){
@@ -360,6 +382,7 @@ void processKeypress(){
             die("getWindowSize");
         }
         E.height -= 2;
+        E.width -= ENABLE_LINE_NUMS ? LINE_NUM_WIDTH : 0;
         break;
 
     case ARROW_UP:
@@ -389,11 +412,13 @@ void processKeypress(){
 
     case HOME_KEY:
         E.cx = 0;
+        E.oldcx = 0;
         break;
 
     case END_KEY:
         if (E.cy < E.numrows) {
             E.cx = E.row[E.cy].size;
+            E.oldcx = E.cx;
         }
         break;
 

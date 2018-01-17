@@ -1,5 +1,6 @@
 #include "../inc/display.h"
 
+int ENABLE_LINE_NUMS = 1;
 int LINE_NUM_WIDTH = 0;
 int MESSAGE_TIMER = 3;
 int TAB_SIZE = 4;
@@ -47,7 +48,6 @@ void initDisplay(){
     s->mlCommentEnd = NULL;
     s->keywords = pykw;
     s->flags = SETTING_NUMBER | SETTING_STRING;
-    E.width -= LINE_NUM_WIDTH;
 }
 
 int is_separator(int c){
@@ -278,8 +278,8 @@ void drawRows(abuf* ab){
             }
         }else{
             char lineNum[16];
-            if (LINE_NUM_WIDTH) {
-                snprintf(lineNum, sizeof(lineNum), "%08d", i + 1);
+            if (ENABLE_LINE_NUMS && LINE_NUM_WIDTH) {
+                snprintf(lineNum, sizeof(lineNum), "%08d", E.scrollRow + i + 1);
                 char buf[32];
                 snprintf(buf, sizeof(buf), "\x1b[7m%s\x1b[m", &lineNum[8 - LINE_NUM_WIDTH]);
                 abappend(ab, buf, strlen(buf));
@@ -333,7 +333,8 @@ void refresh(){
     drawStatus(&ab);
     drawMessageBar(&ab);
     char buf[16];
-    snprintf(buf, sizeof(buf), "\x1b[%d;%dH", E.cy - E.scrollRow + 1, E.cx - E.scrollCol + 1 + LINE_NUM_WIDTH);
+    snprintf(buf, sizeof(buf), "\x1b[%d;%dH", E.cy - E.scrollRow + 1,
+             E.cx - E.scrollCol + 1 + (ENABLE_LINE_NUMS ? LINE_NUM_WIDTH : 0));
     abappend(&ab, buf, strlen(buf));
     abappend(&ab, "\x1b[?25h", 6);
     write(STDOUT_FILENO, ab.b, ab.len);
