@@ -76,13 +76,6 @@ void findcb(char* query, int key){
     static int last = -1;
     static int dir = 1;
     static int savedLine = 0;
-    static char* saved_hl = NULL;
-
-    if (saved_hl) {
-        memcpy(E.row[savedLine].hl, saved_hl, E.row[savedLine].size);
-        free(saved_hl);
-        saved_hl = NULL;
-    }
 
     if (key == '\r' || key == '\x1b' || key == CTRLKEY('q')) {
         last = -1;
@@ -110,15 +103,11 @@ void findcb(char* query, int key){
         erow* row = &E.row[current];
         char* match = strstr(row->text, query);
         if (match) {
-            setStatusMessage("line number %d", E.cy);
             last = current;
             E.cy = current;
             E.cx = match - row->text;
             E.scrollRow = E.numrows;
             savedLine = current;
-            saved_hl = malloc(row->size);
-            memcpy(row->hl, saved_hl, row->size);
-            memset(&row->hl[match - row->text], HL_MATCH, strlen(query));
             break;
         }
     }
