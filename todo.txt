@@ -4,7 +4,7 @@ CTRL-N mirrors quit but opens a no name
 CTRL-O restarts with new file (uses "modified" quit dialogue)
 replace prompt after find
 line nums react to file len IMPORTANT
-soft indent / auto indent
+auto indent on newline
 SHIFT arrow keys select text (inverts bg)
 find selects
 find highlights ALL instances (handle saved_hl restoration)
@@ -14,13 +14,13 @@ CTRL arrow keys jump to "words"
 shift tab and tab when selected to indent/unindent line
 cut copy pasta
 use ncurses
-python syntax highlighting
 ~.femtorc file for lang settings/hl colors (and hl words), tab size, soft wrap, etc.
 highlight functions detecting open paren
 highlight arithmetic symbols
 look into regex for highlighting
 redo hl colors
-resize abuf and row text by factors of 2 and 1.5
+resize abuf and row text by factors of 2 and 1.5 instead of single char
+make install
 
 http://bluesock.org/~willkg/dev/ansi.html
 https://vt100.net/docs/vt102-ug/chapter5.html#S5.5

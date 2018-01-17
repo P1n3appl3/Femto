@@ -2,6 +2,8 @@
 
 #define CTRLKEY(k) ((k) & 0x1f)
 
+extern int TAB_SIZE;
+
 void initEditor(){
     E.cx = 0;
     E.oldcx = 0;
@@ -263,6 +265,7 @@ void insertChar(int c){
     }
     rowInsertChar(&E.row[E.cy], E.cx, c);
     ++E.cx;
+    E.oldcx = E.cx;
 }
 
 void deleteChar(){
@@ -279,6 +282,7 @@ void deleteChar(){
         deleteRow(E.cy);
         --E.cy;
     }
+    E.oldcx = E.cx;
 }
 
 void processKeypress(){
@@ -288,6 +292,12 @@ void processKeypress(){
     switch (c) {
     case '\r':
         insertNewline();
+        break;
+
+    case '\t':
+        do {
+            insertChar(' ');
+        } while (E.cx % TAB_SIZE != 0);
         break;
 
     case BACKSPACE:
