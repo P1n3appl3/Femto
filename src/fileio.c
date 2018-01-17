@@ -1,5 +1,7 @@
 #include "../inc/fileio.h"
 
+extern int TAB_SIZE;
+
 void openFile(char* filename) {
     free(E.filename);
     E.filename = strdup(filename);
@@ -15,7 +17,9 @@ void openFile(char* filename) {
         while (linelen > 0 && (line[linelen - 1] == '\n' || line[linelen - 1] == '\r')) {
             --linelen;
         }
-        insertRow(E.numrows, line, linelen);
+        char* temp = NULL;
+        linelen = removeTabs(line, linelen, &temp);
+        insertRow(E.numrows, temp, linelen);
     }
     free(line);
     fclose(fp);
@@ -63,4 +67,47 @@ char* joinRows(int* buflen){
         ++p;
     }
     return buf;
+}
+
+void detectLang(){
+    E.syntax = NULL;
+    if (E.filename == NULL) {
+        return;
+    }
+    char* ext = strrchr(E.filename, '.');
+    if (ext == NULL) {
+        return;
+    }
+    ++ext;
+    for (int i = 0; (unsigned)i < NUM_SYNTAX; ++i) {
+        struct editorSyntax* s = &HL_SETTINGS[i];
+        if (strstr(s->filematch, ext) != NULL) {
+            E.syntax = s;
+            for (int i = 0; i < E.numrows; ++i) {
+                renderRow(&E.row[i]);
+            }
+            return;
+        }
+    }
+}
+
+ssize_t removeTabs(char* in, ssize_t len, char** out){
+    int tabs = 0;
+    for (int i = 0; i < len; ++i) {
+        tabs += in[i] == '\t';
+    }
+    *out = malloc(len + tabs * (TAB_SIZE - 1) + 1);
+    int j = 0;
+    for (int i = 0; i < len; ++i) {
+        if (in[i] == '\t') {
+            (*out)[j++] = ' ';
+            while (j % TAB_SIZE != 0) {
+                (*out)[j++] = ' ';
+            }
+        }else {
+            (*out)[j++] = in[i];
+        }
+    }
+    (*out)[j] = '\0';
+    return j;
 }

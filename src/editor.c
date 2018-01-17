@@ -2,14 +2,10 @@
 
 #define CTRLKEY(k) ((k) & 0x1f)
 
-int TAB_SIZE = 4;
-int MESSAGE_TIMER = 5;
-int LINE_NUM_WIDTH = 3;
-
 void initEditor(){
     E.cx = 0;
+    E.oldcx = 0;
     E.cy = 0;
-    E.rx = 0;
     E.numrows = 0;
     E.scrollRow = 0;
     E.scrollCol = 0;
@@ -23,29 +19,6 @@ void initEditor(){
         die("getWindowSize");
     }
     E.height -= 2;
-    E.width -= LINE_NUM_WIDTH;
-}
-
-void detectLang(){
-    E.syntax = NULL;
-    if (E.filename == NULL) {
-        return;
-    }
-    char* ext = strrchr(E.filename, '.');
-    if (ext == NULL) {
-        return;
-    }
-    ++ext;
-    for (int i = 0; (unsigned)i < NUM_SYNTAX; ++i) {
-        struct editorSyntax* s = &HL_SETTINGS[i];
-        if (strstr(s->filematch, ext) != NULL) {
-            E.syntax = s;
-            for (int i = 0; i < E.numrows; ++i) {
-                updateSyntax(&E.row[i]);
-            }
-            return;
-        }
-    }
 }
 
 void setStatusMessage(const char* fmt, ...){
@@ -106,7 +79,7 @@ void findcb(char* query, int key){
     static char* saved_hl = NULL;
 
     if (saved_hl) {
-        memcpy(E.row[savedLine].hl, saved_hl, E.row[savedLine].rsize);
+        memcpy(E.row[savedLine].hl, saved_hl, E.row[savedLine].size);
         free(saved_hl);
         saved_hl = NULL;
     }
@@ -135,17 +108,17 @@ void findcb(char* query, int key){
             current = 0;
         }
         erow* row = &E.row[current];
-        char* match = strstr(row->render, query);
+        char* match = strstr(row->text, query);
         if (match) {
             setStatusMessage("line number %d", E.cy);
             last = current;
             E.cy = current;
-            E.cx = rxtocx(row, match - row->render);
+            E.cx = match - row->text;
             E.scrollRow = E.numrows;
             savedLine = current;
-            saved_hl = malloc(row->rsize);
-            memcpy(row->hl, saved_hl, row->rsize);
-            memset(&row->hl[match - row->render], HL_MATCH, strlen(query));
+            saved_hl = malloc(row->size);
+            memcpy(row->hl, saved_hl, row->size);
+            memset(&row->hl[match - row->text], HL_MATCH, strlen(query));
             break;
         }
     }
@@ -181,8 +154,6 @@ void insertRow(int at, char* s, size_t len){
     E.row[at].text = malloc(len + 1);
     memcpy(E.row[at].text, s, len);
     E.row[at].text[len] = '\0';
-    E.row[at].rsize = 0;
-    E.row[at].render = NULL;
     E.row[at].hl = NULL;
     E.row[at].unclosed = 0;
     renderRow(&E.row[at]);
@@ -192,27 +163,7 @@ void insertRow(int at, char* s, size_t len){
 
 void freeRow(erow* row){
     free(row->text);
-    free(row->render);
     free(row->hl);
-}
-
-void scroll(){
-    E.rx = 0;
-    if (E.cy < E.numrows) {
-        E.rx = cxtorx(&E.row[E.cy], E.cx);
-    }
-    if (E.cy < E.scrollRow) {
-        E.scrollRow = E.cy;
-    }
-    if (E.cy >= E.scrollRow + E.height) {
-        E.scrollRow = (E.cy - E.height) + 1;
-    }
-    if (E.rx < E.scrollCol) {
-        E.scrollCol = E.rx;
-    }
-    if (E.rx >= E.scrollCol + E.width) {
-        E.scrollCol = (E.rx - E.width) + 1;
-    }
 }
 
 void moveCursor(int key){
@@ -221,11 +172,15 @@ void moveCursor(int key){
     case ARROW_UP:
         if (E.cy > 0) {
             --E.cy;
+            E.cx = E.oldcx;
         }
         break;
     case ARROW_DOWN:
         if (E.cy < E.numrows) {
             ++E.cy;
+            if (E.cy < E.numrows) {
+                E.cx = E.oldcx;
+            }
         }
         break;
     case ARROW_LEFT:
@@ -235,6 +190,7 @@ void moveCursor(int key){
             --E.cy;
             E.cx = E.row[E.cy].size;
         }
+        E.oldcx = E.cx;
         break;
     case ARROW_RIGHT:
         if (row && E.cx < row->size) {
@@ -243,9 +199,9 @@ void moveCursor(int key){
             ++E.cy;
             E.cx = 0;
         }
+        E.oldcx = E.cx;
         break;
     }
-
     row = E.cy >= E.numrows ? NULL : &E.row[E.cy];
     int rowlen = row ? row->size : 0;
     if (E.cx > rowlen) {

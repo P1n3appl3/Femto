@@ -21,4 +21,8 @@ void saveFile();
 
 char* joinRows(int* buflen);
 
+void detectLang();
+
+ssize_t removeTabs(char* in, ssize_t len, char** out);
+
 #endif

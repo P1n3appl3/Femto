@@ -1,10 +1,6 @@
 #ifndef EDITOR_H
 #define EDITOR_H
 
-extern int MESSAGE_TIMER;
-extern int LINE_NUM_WIDTH;
-extern int TAB_SIZE;
-
 #include <string.h>
 #include <stdarg.h>
 #include <time.h>
@@ -17,8 +13,6 @@ struct erow {
         int index;
         char* text;
         int size;
-        char* render;
-        int rsize;
         char* hl;
         int unclosed;
 };
@@ -26,8 +20,7 @@ struct erow {
 typedef struct erow erow;
 
 struct editorConfig {
-        int cx, cy;
-        int rx;
+        int cx, oldcx, cy;
         int width, height;
         int scrollRow, scrollCol;
         erow* row;
@@ -55,8 +48,6 @@ enum keys {
 
 void initEditor();
 
-void detectLang();
-
 void setStatusMessage(const char* fmt, ...);
 
 char* prompt(char* prompt, void (*callback)(char*, int));
@@ -68,8 +59,6 @@ void find();
 void insertRow(int at, char* s, size_t len);
 
 void freeRow(erow* row);
-
-void scroll();
 
 void moveCursor(int key);
 

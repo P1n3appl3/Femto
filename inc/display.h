@@ -40,15 +40,11 @@ void initDisplay();
 
 int is_separator(int c);
 
-void updateSyntax(struct erow* row);
-
 void renderRow(struct erow* row);
 
 int getColor(int hl);
 
-int cxtorx(struct erow* row, int cx);
-
-int rxtocx(struct erow* row, int rx);
+void scroll();
 
 void drawWelcome(abuf* ab);
 

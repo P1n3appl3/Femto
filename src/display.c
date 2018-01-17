@@ -1,6 +1,8 @@
 #include "../inc/display.h"
 
-extern int LINE_NUM_WIDTH;
+int LINE_NUM_WIDTH = 0;
+int MESSAGE_TIMER = 5;
+int TAB_SIZE = 4;
 
 char* ckw[] = {
     "switch", "if", "while", "for", "break", "continue", "return", "else",
@@ -18,15 +20,16 @@ void initDisplay(){
     s->mlCommentEnd = "*/";
     s->keywords = ckw;
     s->flags = SETTING_NUMBER | SETTING_STRING;
+    E.width -= LINE_NUM_WIDTH;
 }
 
 int is_separator(int c){
     return isspace(c) || c == '\0' || strchr(",.()+-/*=~%<>[];", c) != NULL;
 }
 
-void updateSyntax(struct erow* row){
-    row->hl = realloc(row->hl, row->rsize);
-    memset(row->hl, HL_NORMAL, row->rsize);
+void renderRow(struct erow* row){
+    row->hl = realloc(row->hl, row->size);
+    memset(row->hl, HL_NORMAL, row->size);
     if (E.syntax == NULL) {
         return;
     }
@@ -42,13 +45,13 @@ void updateSyntax(struct erow* row){
     int mcelen = mce ? strlen(mcs) : 0;
     char** kw = E.syntax->keywords;
     int i = 0;
-    while (i < row->rsize) {
-        char c = row->render[i];
+    while (i < row->size) {
+        char c = row->text[i];
         char prev = i == 0 ? HL_NORMAL : row->hl[i - 1];
 
         if (scslen && !instr && !incom) {
-            if (!strncmp(&row->render[i], scs, scslen)) {
-                memset(&row->hl[i], HL_COMMENT, row->rsize - i);
+            if (!strncmp(&row->text[i], scs, scslen)) {
+                memset(&row->hl[i], HL_COMMENT, row->size - i);
                 break;
             }
         }
@@ -56,7 +59,7 @@ void updateSyntax(struct erow* row){
         if (mcslen && mcelen && !instr) {
             if (incom) {
                 row->hl[i] = HL_MLCOMMENT;
-                if (!strncmp(mce, &row->render[i], mcelen)) {
+                if (!strncmp(mce, &row->text[i], mcelen)) {
                     memset(&row->hl[i], HL_MLCOMMENT, mcelen);
                     i += mcelen;
                     incom = 0;
@@ -66,7 +69,7 @@ void updateSyntax(struct erow* row){
                     ++i;
                     continue;
                 }
-            }else if (!strncmp(mcs, &row->render[i], mcslen)) {
+            }else if (!strncmp(mcs, &row->text[i], mcslen)) {
                 memset(&row->hl[i], HL_MLCOMMENT, mcslen);
                 i += mcslen;
                 incom = 1;
@@ -115,8 +118,8 @@ void updateSyntax(struct erow* row){
                 int kwlen = strlen(kw[j]);
                 int kw2 = kw[j][kwlen - 1] == '|';
                 kwlen -= kw2;
-                if (!strncmp(&row->render[i], kw[j], kwlen) &&
-                    is_separator(row->render[i + kwlen])) {
+                if (!strncmp(&row->text[i], kw[j], kwlen) &&
+                    is_separator(row->text[i + kwlen])) {
                     memset(&row->hl[i], kw2 ? HL_KEYWORD_2 : HL_KEYWORD_1, kwlen);
                     i += kwlen;
                     break;
@@ -134,7 +137,7 @@ void updateSyntax(struct erow* row){
     int changed = incom != row->unclosed;
     row->unclosed = incom;
     if (changed && row->index + 1 < E.numrows) {
-        updateSyntax(&E.row[row->index + 1]);
+        renderRow(&E.row[row->index + 1]);
     }
 }
 
@@ -161,53 +164,19 @@ int getColor(int hl){
     }
 }
 
-void renderRow(struct erow* row){
-    int tabs = 0;
-    for (int i = 0; i < row->size; ++i) {
-        tabs += row->text[i] == '\t';
+void scroll(){
+    if (E.cy < E.scrollRow) {
+        E.scrollRow = E.cy;
     }
-    free(row->render);
-    row->render = malloc(row->size + tabs * (TAB_SIZE - 1) + 1);
-    int j = 0;
-    for (int i = 0; i < row->size; ++i) {
-        if (row->text[i] == '\t') {
-            row->render[j++] = ' ';
-            while (j % TAB_SIZE != 0) {
-                row->render[j++] = ' ';
-            }
-        }else {
-            row->render[j++] = row->text[i];
-        }
+    if (E.cy >= E.scrollRow + E.height) {
+        E.scrollRow = (E.cy - E.height) + 1;
     }
-    row->render[j] = '\0';
-    row->rsize = j;
-    updateSyntax(row);
-}
-
-int cxtorx(struct erow* row, int cx){
-    int rx = 0;
-    for (int i = 0; i < cx; ++i) {
-        if (row->text[i] == '\t') {
-            rx += (TAB_SIZE - 1) - (rx % TAB_SIZE);
-        }
-        ++rx;
+    if (E.cx < E.scrollCol) {
+        E.scrollCol = E.cx;
     }
-    return rx;
-}
-
-int rxtocx(struct erow* row, int rx){
-    int cur = 0;
-    int cx = 0;
-    for (; cx < row->size; ++cx) {
-        if (row->text[cx] == '\t') {
-            cur += (TAB_SIZE - 1) - (rx % TAB_SIZE);
-        }
-        ++cur;
-        if (cur > rx) {
-            return cx;
-        }
+    if (E.cx >= E.scrollCol + E.width) {
+        E.scrollCol = (E.cx - E.width) + 1;
     }
-    return cx;
 }
 
 void drawWelcome(abuf* ab){
@@ -282,11 +251,13 @@ void drawRows(abuf* ab){
             }
         }else{
             char lineNum[16];
-            snprintf(lineNum, sizeof(lineNum), "%08d", i + 1);
-            char buf[32];
-            snprintf(buf, sizeof(buf), "\x1b[7m%s\x1b[m", &lineNum[8 - LINE_NUM_WIDTH]);
-            abappend(ab, buf, strlen(buf));
-            int len = E.row[currentRow].rsize - E.scrollCol;
+            if (LINE_NUM_WIDTH) {
+                snprintf(lineNum, sizeof(lineNum), "%08d", i + 1);
+                char buf[32];
+                snprintf(buf, sizeof(buf), "\x1b[7m%s\x1b[m", &lineNum[8 - LINE_NUM_WIDTH]);
+                abappend(ab, buf, strlen(buf));
+            }
+            int len = E.row[currentRow].size - E.scrollCol;
             if (len < 0) {
                 len = 0;
             }
@@ -294,7 +265,7 @@ void drawRows(abuf* ab){
                 len = E.width;
             }
             int color = -1;
-            char* c = &E.row[currentRow].render[E.scrollCol];
+            char* c = &E.row[currentRow].text[E.scrollCol];
             char* hl = &E.row[currentRow].hl[E.scrollCol];
             for (int j = 0; j < len; ++j) {
                 if (iscntrl(c[j])) {
@@ -335,7 +306,7 @@ void refresh(){
     drawStatus(&ab);
     drawMessageBar(&ab);
     char buf[16];
-    snprintf(buf, sizeof(buf), "\x1b[%d;%dH", E.cy - E.scrollRow + 1, E.rx - E.scrollCol + 1 + LINE_NUM_WIDTH);
+    snprintf(buf, sizeof(buf), "\x1b[%d;%dH", E.cy - E.scrollRow + 1, E.cx - E.scrollCol + 1 + LINE_NUM_WIDTH);
     abappend(&ab, buf, strlen(buf));
     abappend(&ab, "\x1b[?25h", 6);
     write(STDOUT_FILENO, ab.b, ab.len);
