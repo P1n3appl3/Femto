@@ -18,6 +18,12 @@ obj/%.o: src/%.c $(INC)
 $(TARGET): $(OBJ)
 	$(CC) $(OBJ) -Wall -g -o $@
 
+install:
+	cp $(TARGET) /usr/bin
+
+uninstall:
+	rm /usr/bin/$(TARGET)
+
 clean:
 	-rm -f obj/*.o
 	-rm -f $(TARGET)

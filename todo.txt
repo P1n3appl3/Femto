@@ -1,5 +1,5 @@
 CTRL-H help dialogue (R,H,S,Q,N,O,F)
-Save-as support
+Save-as support (redo quit system to be like nano)
 longer intro message
 replace prompt after find
 auto indent on newline
@@ -18,7 +18,6 @@ highlight arithmetic symbols
 look into regex for highlighting
 redo hl colors
 resize abuf and row text by factors of 2 and 1.5 instead of single char
-make install
 
 http://bluesock.org/~willkg/dev/ansi.html
 https://vt100.net/docs/vt102-ug/chapter5.html#S5.5
