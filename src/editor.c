@@ -320,6 +320,13 @@ void processKeypress(){
         find();
         break;
 
+    case CTRLKEY('r'):
+        if (getWindowSize(&E.height, &E.width) == -1) {
+            die("getWindowSize");
+        }
+        E.height -= 2;
+        break;
+
     case ARROW_UP:
     case ARROW_DOWN:
     case ARROW_RIGHT:
