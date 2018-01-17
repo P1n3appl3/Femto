@@ -5,10 +5,29 @@ int MESSAGE_TIMER = 5;
 int TAB_SIZE = 4;
 
 char* ckw[] = {
-    "switch", "if", "while", "for", "break", "continue", "return", "else",
-    "struct", "union", "typedef", "static", "enum", "class", "case",
-    "int|", "long|", "double|", "float|", "char|", "unsigned|", "signed|",
-    "void|", NULL
+    "auto", "break", "case", "char", "const", "continue", "default", "do",
+    "double", "else", "enum", "extern", "float", "for", "goto", "if", "int",
+    "long", "register", "return", "short", "signed", "sizeof", "static",
+    "struct", "switch", "typedef", "union", "unsigned", "void", "volatile",
+    "while",
+    "getchar|", "putchar|", "printf|", "scanf|", "strcat|", "strcmp|",
+    "strcpy|", "isdigit|", "isalpha|", "isalnum|", "islower|", "isupper|",
+    "acos|", "asin|", "atan|", "cos|", "exp|", "fabs|", "sqrt|", "time|",
+    "difftime|", "clock|", "malloc|", "realloc|", "rand|", "srand|", NULL
+};
+
+char* pykw[] = {
+    "and", "assert", "break", "class", "continue", "def", "del", "elif", "else",
+    "except", "exec", "finally", "for", "from", "global", "if", "import", "in",
+    "is", "lambda", "not", "or", "pass", "print", "raise", "return", "try",
+    "while",
+    "abs|", "all|", "any|", "bin|", "bool|", "char|", "cmp|", "dict|", "dir|",
+    "divmod|", "enumerate|", "eval|", "file|", "filter|", "float|", "format|",
+    "hash|", "help|", "hex|", "id|", "input|", "int|", "iter|", "len|", "list|",
+    "long|", "map|", "max|", "min|", "next|", "oct|", "open|", "ord|", "pow|",
+    "print|", "range|", "raw_input|", "reduce|", "repr|", "reversed|", "set|",
+    "slice|", "sorted|", "str|", "sum|", "super|", "tuple|", "type|",
+    "unicode|", "xrange|", "zip|", "__import__|", NULL
 };
 
 void initDisplay(){
@@ -19,6 +38,14 @@ void initDisplay(){
     s->mlCommentStart = "/*";
     s->mlCommentEnd = "*/";
     s->keywords = ckw;
+    s->flags = SETTING_NUMBER | SETTING_STRING;
+    s = &HL_SETTINGS[1];
+    s->filetype = "Python";
+    s->filematch = "py";
+    s->slCommentStart = "#";
+    s->mlCommentStart = NULL;
+    s->mlCommentEnd = NULL;
+    s->keywords = pykw;
     s->flags = SETTING_NUMBER | SETTING_STRING;
     E.width -= LINE_NUM_WIDTH;
 }
@@ -150,15 +177,15 @@ int getColor(int hl){
     case HL_STRING:
         return 35;
     case HL_ESCAPE:
-        return 34; // find cyan
+        return 34;
     case HL_COMMENT:
         return 36;
     case HL_MLCOMMENT:
         return 36;
     case HL_KEYWORD_1:
-        return 33;
-    case HL_KEYWORD_2:
         return 32;
+    case HL_KEYWORD_2:
+        return 33;
     default:
         return 37;
     }

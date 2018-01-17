@@ -6,7 +6,7 @@
 #include "abuf.h"
 #include "editor.h"
 
-#define NUM_SYNTAX 1
+#define NUM_SYNTAX 2
 #define SETTING_NUMBER (1<<0)
 #define SETTING_STRING (1<<1)
 
