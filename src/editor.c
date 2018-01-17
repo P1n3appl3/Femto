@@ -5,6 +5,9 @@
 extern int TAB_SIZE;
 
 void initEditor(){
+    for (int i = 0; i < E.numrows; ++i) {
+        freeRow(&E.row[i]);
+    }
     E.cx = 0;
     E.oldcx = 0;
     E.cy = 0;
@@ -320,6 +323,28 @@ void processKeypress(){
             return;
         }
         exit(0);
+        break;
+
+    case CTRLKEY('n'):
+        if (!quit_attempt && E.dirty) {
+            quit_attempt = 1;
+            setStatusMessage("WARNING: Unsaved changes! Press CTRL-N again to discard.");
+            return;
+        }
+        initEditor();
+        break;
+
+    case CTRLKEY('o'):
+        if (!quit_attempt && E.dirty) {
+            quit_attempt = 1;
+            setStatusMessage("WARNING: Unsaved changes! Press CTRL-O again to discard.");
+            return;
+        }
+        char* newFile = prompt("Open file: %s (ESC to cancel)", NULL);
+        if (newFile != NULL) {
+            initEditor();
+            openFile(newFile);
+        }
         break;
 
     case CTRLKEY('s'):

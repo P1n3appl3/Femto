@@ -1,7 +1,6 @@
-CTRL-H help dialogue
+CTRL-H help dialogue (R,H,S,Q,N,O,F)
+Save-as support
 longer intro message
-CTRL-N mirrors quit but opens a no name
-CTRL-O restarts with new file (uses "modified" quit dialogue)
 replace prompt after find
 line nums react to file len IMPORTANT
 auto indent on newline

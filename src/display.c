@@ -1,7 +1,7 @@
 #include "../inc/display.h"
 
 int LINE_NUM_WIDTH = 0;
-int MESSAGE_TIMER = 5;
+int MESSAGE_TIMER = 3;
 int TAB_SIZE = 4;
 
 char* ckw[] = {
