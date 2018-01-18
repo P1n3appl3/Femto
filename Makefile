@@ -19,10 +19,13 @@ $(TARGET): $(OBJ)
 	$(CC) $(OBJ) -Wall -g -o $@
 
 install:
-	cp $(TARGET) /usr/bin
+	$(eval PREFIX ?= /usr)
+	mkdir -p $(PREFIX)/bin
+	cp $(TARGET) $(PREFIX)/bin
 
 uninstall:
-	rm /usr/bin/$(TARGET)
+	$(eval PREFIX ?= /usr)
+	rm $(PREFIX)/bin/$(TARGET)
 
 clean:
 	-rm -f obj/*.o
