@@ -18,7 +18,7 @@ obj/%.o: src/%.c $(INC)
 $(TARGET): $(OBJ)
 	$(CC) $(OBJ) -Wall -g -o $@
 
-install:
+install: $(TARGET)
 	$(eval PREFIX ?= /usr)
 	mkdir -p $(PREFIX)/bin
 	cp $(TARGET) $(PREFIX)/bin
