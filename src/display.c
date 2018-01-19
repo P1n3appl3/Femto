@@ -201,8 +201,8 @@ void scroll(){
     if (E.cx < E.scrollCol) {
         E.scrollCol = E.cx;
     }
-    if (E.cx >= E.scrollCol + E.width) {
-        E.scrollCol = (E.cx - E.width) + 1;
+    if (E.cx >= E.scrollCol + E.width - LINE_NUM_WIDTH) {
+        E.scrollCol = (E.cx - (E.width - LINE_NUM_WIDTH)) + 1;
     }
 }
 
@@ -288,8 +288,8 @@ void drawRows(abuf* ab){
             if (len < 0) {
                 len = 0;
             }
-            if (len > E.width) {
-                len = E.width;
+            if (len > E.width - LINE_NUM_WIDTH) {
+                len = E.width - LINE_NUM_WIDTH;
             }
             int color = -1;
             char* c = &E.row[currentRow].text[E.scrollCol];

@@ -76,6 +76,8 @@ void insertChar(int c);
 
 void deleteChar();
 
+int countTabs(char* s, size_t len);
+
 void processKeypress();
 
 #endif

@@ -6,10 +6,10 @@ extern int LINE_NUM_WIDTH;
 
 void openFile(char* filename) {
     free(E.filename);
+    LINE_NUM_WIDTH = 0;
     E.filename = strdup(filename);
     FILE* fp = fopen(filename, "r");
     if (!fp) {
-        LINE_NUM_WIDTH = 0;
         return;
     }
     detectLang();
@@ -27,13 +27,6 @@ void openFile(char* filename) {
     free(line);
     fclose(fp);
     E.dirty = 0;
-    LINE_NUM_WIDTH = 0;
-    if (ENABLE_LINE_NUMS) {
-        for (int temp = E.numrows; temp > 0; temp /= 10) {
-            ++LINE_NUM_WIDTH;
-            --E.width;
-        }
-    }
 }
 
 void saveFile(){

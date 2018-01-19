@@ -82,7 +82,6 @@ char* prompt(char* prompt, void (*callback)(char*, int)){
 void findcb(char* query, int key){
     static int last = -1;
     static int dir = 1;
-    static int savedLine = 0;
 
     if (key == '\r' || key == '\x1b' || key == CTRLKEY('q')) {
         last = -1;
@@ -114,7 +113,6 @@ void findcb(char* query, int key){
             E.cy = current;
             E.cx = match - row->text;
             E.scrollRow = E.numrows;
-            savedLine = current;
             break;
         }
     }
@@ -162,7 +160,6 @@ void insertRow(int at, char* s, size_t len){
         }
         if (temp != 0) {
             ++LINE_NUM_WIDTH;
-            --E.width;
         }
     }
 }
@@ -191,7 +188,11 @@ void moveCursor(int key){
         break;
     case ARROW_LEFT:
         if (E.cx > 0) {
+            int tabs = countTabs(row->text, row->size);
             --E.cx;
+            while (E.cx < tabs * TAB_SIZE && E.cx % TAB_SIZE != 0) {
+                --E.cx;
+            }
         }else if (E.cy > 0) {
             --E.cy;
             E.cx = E.row[E.cy].size;
@@ -200,7 +201,11 @@ void moveCursor(int key){
         break;
     case ARROW_RIGHT:
         if (row && E.cx < row->size) {
+            int tabs = countTabs(row->text, row->size);
             ++E.cx;
+            while (E.cx < tabs * TAB_SIZE && E.cx % TAB_SIZE != 0) {
+                ++E.cx;
+            }
         }else if (row && E.cx == row->size) {
             ++E.cy;
             E.cx = 0;
@@ -263,7 +268,6 @@ void deleteRow(int at){
         }
         if (temp == 0) {
             --LINE_NUM_WIDTH;
-            ++E.width;
         }
     }
 }
@@ -279,8 +283,13 @@ void insertNewline(){
         row->text[row->size] = '\0';
         renderRow(row);
     }
-    ++E.cy;
     E.cx = 0;
+    int tabs = countTabs(E.row[E.cy].text, E.row[E.cy].size) * TAB_SIZE;
+    ++E.cy;
+    while (tabs) {
+        insertChar(' ');
+        --tabs;
+    }
 }
 
 void insertChar(int c){
@@ -299,8 +308,15 @@ void deleteChar(){
     }
     erow* row = &E.row[E.cy];
     if (E.cx > 0) {
+        int tabs = countTabs(row->text, row->size);
         rowDeleteChar(row, E.cx - 1);
         --E.cx;
+        if (E.cx < tabs * TAB_SIZE) {
+            while (E.cx % TAB_SIZE != 0) {
+                rowDeleteChar(row, E.cx - 1);
+                --E.cx;
+            }
+        }
     }else {
         E.cx = E.row[E.cy - 1].size;
         rowAppendStr(&E.row[E.cy - 1], row->text, row->size);
@@ -308,6 +324,12 @@ void deleteChar(){
         --E.cy;
     }
     E.oldcx = E.cx;
+}
+
+int countTabs(char* s, size_t len){
+    int indent;
+    for (indent = 0; indent < (int)len && s[indent] == ' '; ++indent) ;
+    return indent / TAB_SIZE;
 }
 
 void processKeypress(){
@@ -382,7 +404,6 @@ void processKeypress(){
             die("getWindowSize");
         }
         E.height -= 2;
-        E.width -= ENABLE_LINE_NUMS ? LINE_NUM_WIDTH : 0;
         break;
 
     case ARROW_UP:

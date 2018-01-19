@@ -9,7 +9,7 @@ int main(int argc, char* argv[]){
         openFile(argv[1]);
     }
 
-    setStatusMessage("^Q : Quit | ^S : Save | ^F : Find");
+    setStatusMessage("^Q : Quit | ^S : Save | ^F : Find | ^O : Open | ^N : New");
 
     while (1) {
         refresh();
