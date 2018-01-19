@@ -181,6 +181,8 @@ void moveCursor(int key){
             if (E.cx < tabs * TAB_SIZE) {
                 E.cx -= E.cx % TAB_SIZE;
             }
+        }else  {
+            E.cx = 0;
         }
         break;
     case ARROW_DOWN:
@@ -402,7 +404,9 @@ void processKeypress(){
         break;
 
     case CTRLKEY('s'):
-        saveFile();
+        if (E.dirty) {
+            saveFile();
+        }
         break;
 
     case CTRLKEY('f'):

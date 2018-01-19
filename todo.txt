@@ -19,6 +19,7 @@ look into regex for highlighting
 redo hl colors
 resize abuf and row text by factors of 2 and 1.5 instead of single char
 hash contents to check modified instead of simple dirty counter
+record asciinema
 
 http://bluesock.org/~willkg/dev/ansi.html
 https://vt100.net/docs/vt102-ug/chapter5.html#S5.5
