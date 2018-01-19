@@ -176,6 +176,11 @@ void moveCursor(int key){
         if (E.cy > 0) {
             --E.cy;
             E.cx = E.oldcx;
+            row = &E.row[E.cy];
+            int tabs = countTabs(row->text, row->size);
+            if (E.cx < tabs * TAB_SIZE) {
+                E.cx -= E.cx % TAB_SIZE;
+            }
         }
         break;
     case ARROW_DOWN:
@@ -183,6 +188,11 @@ void moveCursor(int key){
             ++E.cy;
             if (E.cy < E.numrows) {
                 E.cx = E.oldcx;
+                row = &E.row[E.cy];
+                int tabs = countTabs(row->text, row->size);
+                if (E.cx < tabs * TAB_SIZE) {
+                    E.cx -= E.cx % TAB_SIZE;
+                }
             }
         }
         break;
