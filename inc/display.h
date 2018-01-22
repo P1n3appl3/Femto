@@ -12,6 +12,9 @@
 
 struct erow;
 
+/**
+ * Contains parameters for syntax highlighting of a given language.
+ */
 struct editorSyntax {
         char* filetype;
         char* filematch;
@@ -36,14 +39,26 @@ enum highlight {
         HL_MATCH
 };
 
+/**
+ * Defines syntax of the supported languages.
+ */
 void initDisplay();
 
 int is_separator(int c);
 
+/**
+ * Performs highlighting on a given row.
+ */
 void renderRow(struct erow* row);
 
+/**
+ * Maps color enum to ansi codes.
+ */
 int getColor(int hl);
 
+/**
+ * Updates view of the editor based on cursor position.
+ */
 void scroll();
 
 void drawWelcome(abuf* ab);
@@ -54,6 +69,9 @@ void drawMessageBar(abuf* ab);
 
 void drawRows(abuf* ab);
 
+/**
+ * Drives the drawing of the display.
+ */
 void refresh();
 
 #endif

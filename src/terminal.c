@@ -29,7 +29,7 @@ void enableRawMode(){
     raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
     raw.c_cc[VMIN] = 0;
     raw.c_cc[VTIME] = 1; //.1 second timeout
-    write(STDOUT_FILENO, "\033[?47h", 6);
+    write(STDOUT_FILENO, "\x1b[?47h", 6);
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) {
         die("tcsetattr");
     }
@@ -37,14 +37,14 @@ void enableRawMode(){
 }
 
 void disableRawMode(){
-    write(STDOUT_FILENO, "\033[?47l", 6);
+    write(STDOUT_FILENO, "\x1b[?47l", 6);
     clearScreen();
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &E.orig_termios) == -1) {
         die("tcsetattr");
     }
 }
 
-int getCursorPosition(int* rows, int* cols){
+int getCursorPosition(int* x, int* y){
     if (write(STDOUT_FILENO, "\x1b[6n", 4) != 4) {
         return -1;
     }
@@ -63,7 +63,7 @@ int getCursorPosition(int* rows, int* cols){
     if (buf[0] != '\x1b' || buf[1] != '[') {
         return -1;
     }
-    if (sscanf(&buf[2], "%d;%d", rows, cols) != 2) {
+    if (sscanf(&buf[2], "%d;%d", x, y) != 2) {
         return -1;
     }
     return 0;

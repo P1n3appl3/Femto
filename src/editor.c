@@ -2,7 +2,6 @@
 
 #define CTRLKEY(k) ((k) & 0x1f)
 
-extern int TAB_SIZE;
 extern int ENABLE_LINE_NUMS;
 extern int LINE_NUM_WIDTH;
 
@@ -18,6 +17,7 @@ void initEditor(){
     E.scrollCol = 0;
     E.row = NULL;
     E.filename = NULL;
+    E.tabSize = 4;
     E.dirty = 0;
     E.statusmsg[0] = '\0';
     E.messageTime = 0;
@@ -164,6 +164,28 @@ void insertRow(int at, char* s, size_t len){
     }
 }
 
+void deleteRow(int at){
+    if (at >= E.numrows) {
+        return;
+    }
+    freeRow(&E.row[at]);
+    memmove(&E.row[at], &E.row[at + 1], (E.numrows - at - 1) * sizeof(erow));
+    for (int i = at; i < E.numrows - 1; ++i) {
+        --E.row[i].index;
+    }
+    --E.numrows;
+    ++E.dirty;
+    if (ENABLE_LINE_NUMS) {
+        int temp = E.numrows;
+        for (int i = LINE_NUM_WIDTH - 1; i > 0; --i) {
+            temp /= 10;
+        }
+        if (temp == 0) {
+            --LINE_NUM_WIDTH;
+        }
+    }
+}
+
 void freeRow(erow* row){
     free(row->text);
     free(row->hl);
@@ -178,10 +200,10 @@ void moveCursor(int key){
             E.cx = E.oldcx;
             row = &E.row[E.cy];
             int tabs = countTabs(row->text, row->size);
-            if (E.cx < tabs * TAB_SIZE) {
-                E.cx -= E.cx % TAB_SIZE;
+            if (E.cx < tabs * E.tabSize) {
+                E.cx -= E.cx % E.tabSize;
             }
-        }else  {
+        }else {
             E.cx = 0;
         }
         break;
@@ -192,8 +214,8 @@ void moveCursor(int key){
                 E.cx = E.oldcx;
                 row = &E.row[E.cy];
                 int tabs = countTabs(row->text, row->size);
-                if (E.cx < tabs * TAB_SIZE) {
-                    E.cx -= E.cx % TAB_SIZE;
+                if (E.cx < tabs * E.tabSize) {
+                    E.cx -= E.cx % E.tabSize;
                 }
             }
         }
@@ -202,7 +224,7 @@ void moveCursor(int key){
         if (E.cx > 0) {
             int tabs = countTabs(row->text, row->size);
             --E.cx;
-            while (E.cx < tabs * TAB_SIZE && E.cx % TAB_SIZE != 0) {
+            while (E.cx < tabs * E.tabSize && E.cx % E.tabSize != 0) {
                 --E.cx;
             }
         }else if (E.cy > 0) {
@@ -215,7 +237,7 @@ void moveCursor(int key){
         if (row && E.cx < row->size) {
             int tabs = countTabs(row->text, row->size);
             ++E.cx;
-            while (E.cx < tabs * TAB_SIZE && E.cx % TAB_SIZE != 0) {
+            while (E.cx < tabs * E.tabSize && E.cx % E.tabSize != 0) {
                 ++E.cx;
             }
         }else if (row && E.cx == row->size) {
@@ -262,28 +284,6 @@ void rowAppendStr(erow* row, char* s, size_t len){
     ++E.dirty;
 }
 
-void deleteRow(int at){
-    if (at >= E.numrows) {
-        return;
-    }
-    freeRow(&E.row[at]);
-    memmove(&E.row[at], &E.row[at + 1], (E.numrows - at - 1) * sizeof(erow));
-    for (int i = at; i < E.numrows - 1; ++i) {
-        --E.row[i].index;
-    }
-    --E.numrows;
-    ++E.dirty;
-    if (ENABLE_LINE_NUMS) {
-        int temp = E.numrows;
-        for (int i = LINE_NUM_WIDTH - 1; i > 0; --i) {
-            temp /= 10;
-        }
-        if (temp == 0) {
-            --LINE_NUM_WIDTH;
-        }
-    }
-}
-
 void insertNewline(){
     if (E.cx == 0) {
         insertRow(E.cy, "", 0);
@@ -296,7 +296,7 @@ void insertNewline(){
         renderRow(row);
     }
     E.cx = 0;
-    int tabs = countTabs(E.row[E.cy].text, E.row[E.cy].size) * TAB_SIZE;
+    int tabs = countTabs(E.row[E.cy].text, E.row[E.cy].size) * E.tabSize;
     ++E.cy;
     while (tabs) {
         insertChar(' ');
@@ -323,8 +323,8 @@ void deleteChar(){
         int tabs = countTabs(row->text, row->size);
         rowDeleteChar(row, E.cx - 1);
         --E.cx;
-        if (E.cx < tabs * TAB_SIZE) {
-            while (E.cx % TAB_SIZE != 0) {
+        if (E.cx < tabs * E.tabSize) {
+            while (E.cx % E.tabSize != 0) {
                 rowDeleteChar(row, E.cx - 1);
                 --E.cx;
             }
@@ -341,7 +341,7 @@ void deleteChar(){
 int countTabs(char* s, size_t len){
     int indent;
     for (indent = 0; indent < (int)len && s[indent] == ' '; ++indent) ;
-    return indent / TAB_SIZE;
+    return indent / E.tabSize;
 }
 
 void processKeypress(){
@@ -356,7 +356,7 @@ void processKeypress(){
     case '\t':
         do {
             insertChar(' ');
-        } while (E.cx % TAB_SIZE != 0);
+        } while (E.cx % E.tabSize != 0);
         break;
 
     case BACKSPACE:

@@ -1,6 +1,5 @@
 #include "../inc/fileio.h"
 
-extern int TAB_SIZE;
 extern int ENABLE_LINE_NUMS;
 extern int LINE_NUM_WIDTH;
 
@@ -99,12 +98,12 @@ ssize_t removeTabs(char* in, ssize_t len, char** out){
     for (int i = 0; i < len; ++i) {
         tabs += in[i] == '\t';
     }
-    *out = malloc(len + tabs * (TAB_SIZE - 1) + 1);
+    *out = malloc(len + tabs * (E.tabSize - 1) + 1);
     int j = 0;
     for (int i = 0; i < len; ++i) {
         if (in[i] == '\t') {
             (*out)[j++] = ' ';
-            while (j % TAB_SIZE != 0) {
+            while (j % E.tabSize != 0) {
                 (*out)[j++] = ' ';
             }
         }else {

@@ -3,7 +3,6 @@
 int ENABLE_LINE_NUMS = 1;
 int LINE_NUM_WIDTH = 0;
 int MESSAGE_TIMER = 3;
-int TAB_SIZE = 4;
 
 char* ckw[] = {
     "auto", "break", "case", "char", "const", "continue", "default", "do",

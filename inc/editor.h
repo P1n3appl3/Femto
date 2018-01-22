@@ -9,6 +9,10 @@
 #include "fileio.h"
 #include "terminal.h"
 
+/**
+ * Encapsulates a row of text including its position in the file and syntax
+ * highlighting data.
+ */
 struct erow {
         int index;
         char* text;
@@ -19,6 +23,9 @@ struct erow {
 
 typedef struct erow erow;
 
+/**
+ * Global object containing the state of the editor.
+ */
 struct editorConfig {
         int cx, oldcx, cy;
         int width, height;
@@ -27,6 +34,7 @@ struct editorConfig {
         int numrows;
         int dirty;
         char* filename;
+        int tabSize;
         char statusmsg[80];
         time_t messageTime;
         struct editorSyntax* syntax;
@@ -46,20 +54,49 @@ enum keys {
         DEL_KEY
 };
 
+/**
+ * Initializes global editor object, destroying an old one of it existed.
+ */
 void initEditor();
 
+/**
+ * Displays a string to the user with printf style fomatting flags.
+ */
 void setStatusMessage(const char* fmt, ...);
 
+/**
+ * Displays a string to the user and lets them input a response, with an
+ * optional callback function firing after each keypress.
+ */
 char* prompt(char* prompt, void (*callback)(char*, int));
 
+/**
+ * Callback function for the find operation. Handles moving between selections
+ * with arrow keys and canceling or finishing the find operation.
+ * @param query current search string
+ * @param key   latest key pressed
+ */
 void findcb(char* query, int key);
 
+/**
+ * Prompts the user to search for a string in the file.
+ */
 void find();
 
+/**
+ * Creates a new row in the editor.
+ * @param s   seed string for new row
+ * @param len seed string length
+ */
 void insertRow(int at, char* s, size_t len);
+
+void deleteRow(int at);
 
 void freeRow(erow* row);
 
+/**
+ * Handles arrow key presses.
+ */
 void moveCursor(int key);
 
 void rowInsertChar(erow* row, int at, char c);
@@ -67,8 +104,6 @@ void rowInsertChar(erow* row, int at, char c);
 void rowDeleteChar(erow* row, int at);
 
 void rowAppendStr(erow* row, char* s, size_t len);
-
-void deleteRow(int at);
 
 void insertNewline();
 
@@ -78,6 +113,9 @@ void deleteChar();
 
 int countTabs(char* s, size_t len);
 
+/**
+ * Contains the high level logic for handling different kinds of keys (blocking).
+ */
 void processKeypress();
 
 #endif
