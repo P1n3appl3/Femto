@@ -5,8 +5,8 @@
 #include <string.h>
 
 typedef struct abuf {
-        char* b;
-        int len;
+    char* b;
+    int len;
 } abuf;
 
 #define ABUF_INIT {NULL, 0};

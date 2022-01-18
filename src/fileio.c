@@ -8,15 +8,14 @@ void openFile(char* filename) {
     LINE_NUM_WIDTH = 0;
     E.filename = strdup(filename);
     FILE* fp = fopen(filename, "r");
-    if (!fp) {
-        return;
-    }
+    if (!fp) { return; }
     detectLang();
     char* line = NULL;
     size_t linecap = 0;
     ssize_t linelen;
     while ((linelen = getline(&line, &linecap, fp)) != -1) {
-        while (linelen > 0 && (line[linelen - 1] == '\n' || line[linelen - 1] == '\r')) {
+        while (linelen > 0 &&
+               (line[linelen - 1] == '\n' || line[linelen - 1] == '\r')) {
             --linelen;
         }
         char* temp = NULL;
@@ -28,9 +27,10 @@ void openFile(char* filename) {
     E.dirty = 0;
 }
 
-void saveFile(){
+void saveFile() {
     if (E.filename == NULL) {
-        if ((E.filename = prompt("Save as: %s (ESC to cancel)", NULL)) == NULL) {
+        if ((E.filename = prompt("Save as: %s (ESC to cancel)", NULL)) ==
+            NULL) {
             setStatusMessage("Save aborted");
             return;
         }
@@ -53,11 +53,9 @@ void saveFile(){
     setStatusMessage("Save failed! I/O error: %s", strerror(errno));
 }
 
-char* joinRows(int* buflen){
+char* joinRows(int* buflen) {
     int len = 0;
-    for (int i = 0; i < E.numrows; ++i) {
-        len += E.row[i].size + 1;
-    }
+    for (int i = 0; i < E.numrows; ++i) { len += E.row[i].size + 1; }
     *buflen = len;
 
     char* buf = malloc(len);
@@ -71,42 +69,32 @@ char* joinRows(int* buflen){
     return buf;
 }
 
-void detectLang(){
+void detectLang() {
     E.syntax = NULL;
-    if (E.filename == NULL) {
-        return;
-    }
+    if (E.filename == NULL) { return; }
     char* ext = strrchr(E.filename, '.');
-    if (ext == NULL) {
-        return;
-    }
+    if (ext == NULL) { return; }
     ++ext;
     for (int i = 0; (unsigned)i < NUM_SYNTAX; ++i) {
         struct editorSyntax* s = &HL_SETTINGS[i];
         if (strstr(s->filematch, ext) != NULL) {
             E.syntax = s;
-            for (int i = 0; i < E.numrows; ++i) {
-                renderRow(&E.row[i]);
-            }
+            for (int i = 0; i < E.numrows; ++i) { renderRow(&E.row[i]); }
             return;
         }
     }
 }
 
-ssize_t removeTabs(char* in, ssize_t len, char** out){
+ssize_t removeTabs(char* in, ssize_t len, char** out) {
     int tabs = 0;
-    for (int i = 0; i < len; ++i) {
-        tabs += in[i] == '\t';
-    }
+    for (int i = 0; i < len; ++i) { tabs += in[i] == '\t'; }
     *out = malloc(len + tabs * (E.tabSize - 1) + 1);
     int j = 0;
     for (int i = 0; i < len; ++i) {
         if (in[i] == '\t') {
             (*out)[j++] = ' ';
-            while (j % E.tabSize != 0) {
-                (*out)[j++] = ' ';
-            }
-        }else {
+            while (j % E.tabSize != 0) { (*out)[j++] = ' '; }
+        } else {
             (*out)[j++] = in[i];
         }
     }

@@ -13,7 +13,7 @@ OBJ = $(patsubst src/%.c, obj/%.o, $(SRC))
 
 .PRECIOUS: obj/%.o
 obj/%.o: src/%.c $(INC)
-	$(CC) -c $(CFLAGS) -o $@ $<
+	$(CC) -c -Iinc $(CFLAGS) -o $@ $<
 
 $(TARGET): $(OBJ)
 	$(CC) $(OBJ) -Wall -g -o $@

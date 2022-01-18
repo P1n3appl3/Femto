@@ -1,14 +1,13 @@
 #include "../inc/editor.h"
+#define CTRLKEY(k) ((k)&0x1f)
 
-#define CTRLKEY(k) ((k) & 0x1f)
+struct editorConfig E;
 
 extern int ENABLE_LINE_NUMS;
 extern int LINE_NUM_WIDTH;
 
-void initEditor(){
-    for (int i = 0; i < E.numrows; ++i) {
-        freeRow(&E.row[i]);
-    }
+void initEditor() {
+    for (int i = 0; i < E.numrows; ++i) { freeRow(&E.row[i]); }
     E.cx = 0;
     E.oldcx = 0;
     E.cy = 0;
@@ -22,13 +21,11 @@ void initEditor(){
     E.statusmsg[0] = '\0';
     E.messageTime = 0;
     E.syntax = NULL;
-    if (getWindowSize(&E.height, &E.width) == -1) {
-        die("getWindowSize");
-    }
+    if (getWindowSize(&E.height, &E.width) == -1) { die("getWindowSize"); }
     E.height -= 2;
 }
 
-void setStatusMessage(const char* fmt, ...){
+void setStatusMessage(const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     vsnprintf(E.statusmsg, sizeof(E.statusmsg), fmt, ap);
@@ -36,7 +33,7 @@ void setStatusMessage(const char* fmt, ...){
     E.messageTime = time(NULL);
 }
 
-char* prompt(char* prompt, void (*callback)(char*, int)){
+char* prompt(char* prompt, void (*callback)(char*, int)) {
     size_t bufsize = 80;
     char* buf = malloc(bufsize);
     size_t buflen = 0;
@@ -48,24 +45,18 @@ char* prompt(char* prompt, void (*callback)(char*, int)){
         int c = readKey();
         if (c == '\x1b' || c == CTRLKEY('q')) {
             setStatusMessage("");
-            if (callback) {
-                callback(buf, c);
-            }
+            if (callback) { callback(buf, c); }
             free(buf);
             return NULL;
-        }else if (c == '\r') {
+        } else if (c == '\r') {
             if (buflen > 0) {
                 setStatusMessage("");
-                if (callback) {
-                    callback(buf, c);
-                }
+                if (callback) { callback(buf, c); }
                 return buf;
             }
-        }else if (c == BACKSPACE || c == DEL_KEY || c == CTRLKEY('h')) {
-            if (buflen > 0) {
-                buf[--buflen] = '\0';
-            }
-        }else if (!iscntrl(c) && c < 128) {
+        } else if (c == BACKSPACE || c == DEL_KEY || c == CTRLKEY('h')) {
+            if (buflen > 0) { buf[--buflen] = '\0'; }
+        } else if (!iscntrl(c) && c < 128) {
             if (buflen == bufsize - 1) {
                 bufsize *= 2;
                 buf = realloc(buf, bufsize);
@@ -73,13 +64,11 @@ char* prompt(char* prompt, void (*callback)(char*, int)){
             buf[buflen++] = c;
             buf[buflen] = '\0';
         }
-        if (callback) {
-            callback(buf, c);
-        }
+        if (callback) { callback(buf, c); }
     }
 }
 
-void findcb(char* query, int key){
+void findcb(char* query, int key) {
     static int last = -1;
     static int dir = 1;
 
@@ -87,23 +76,21 @@ void findcb(char* query, int key){
         last = -1;
         dir = 1;
         return;
-    }else if (key == ARROW_UP || key == ARROW_LEFT) {
+    } else if (key == ARROW_UP || key == ARROW_LEFT) {
         dir = -1;
-    }else if (key == ARROW_DOWN || key == ARROW_RIGHT) {
+    } else if (key == ARROW_DOWN || key == ARROW_RIGHT) {
         dir = 1;
-    }else {
+    } else {
         last = -1;
     }
 
-    if (last == -1) {
-        dir = 1;
-    }
+    if (last == -1) { dir = 1; }
     int current = last;
     for (int i = 0; i < E.numrows; ++i) {
         current += dir;
         if (current == -1) {
             current = E.numrows - 1;
-        }else if (current == E.numrows) {
+        } else if (current == E.numrows) {
             current = 0;
         }
         erow* row = &E.row[current];
@@ -118,15 +105,16 @@ void findcb(char* query, int key){
     }
 }
 
-void find(){
+void find() {
     int save_cx = E.cx;
     int save_cy = E.cy;
     int save_scrollRow = E.scrollRow;
     int save_scrollCol = E.scrollCol;
-    char* query = prompt("Find: %s (Arrows/Enter to select, ESC to cancel)", findcb);
+    char* query =
+        prompt("Find: %s (Arrows/Enter to select, ESC to cancel)", findcb);
     if (query) {
         free(query);
-    }else {
+    } else {
         E.cx = save_cx;
         E.cy = save_cy;
         E.scrollRow = save_scrollRow;
@@ -134,15 +122,11 @@ void find(){
     }
 }
 
-void insertRow(int at, char* s, size_t len){
-    if (at > E.numrows) {
-        return;
-    }
+void insertRow(int at, char* s, size_t len) {
+    if (at > E.numrows) { return; }
     E.row = realloc(E.row, sizeof(erow) * (E.numrows + 1));
     memmove(&E.row[at + 1], &E.row[at], (E.numrows - at) * sizeof(erow));
-    for (int i = at + 1; i <= E.numrows; ++i) {
-        ++E.row[i].index;
-    }
+    for (int i = at + 1; i <= E.numrows; ++i) { ++E.row[i].index; }
     E.row[at].index = at;
     E.row[at].size = len;
     E.row[at].text = malloc(len + 1);
@@ -155,43 +139,31 @@ void insertRow(int at, char* s, size_t len){
     ++E.dirty;
     if (ENABLE_LINE_NUMS) {
         int temp = E.numrows;
-        for (int i = LINE_NUM_WIDTH; i > 0; --i) {
-            temp /= 10;
-        }
-        if (temp != 0) {
-            ++LINE_NUM_WIDTH;
-        }
+        for (int i = LINE_NUM_WIDTH; i > 0; --i) { temp /= 10; }
+        if (temp != 0) { ++LINE_NUM_WIDTH; }
     }
 }
 
-void deleteRow(int at){
-    if (at >= E.numrows) {
-        return;
-    }
+void deleteRow(int at) {
+    if (at >= E.numrows) { return; }
     freeRow(&E.row[at]);
     memmove(&E.row[at], &E.row[at + 1], (E.numrows - at - 1) * sizeof(erow));
-    for (int i = at; i < E.numrows - 1; ++i) {
-        --E.row[i].index;
-    }
+    for (int i = at; i < E.numrows - 1; ++i) { --E.row[i].index; }
     --E.numrows;
     ++E.dirty;
     if (ENABLE_LINE_NUMS) {
         int temp = E.numrows;
-        for (int i = LINE_NUM_WIDTH - 1; i > 0; --i) {
-            temp /= 10;
-        }
-        if (temp == 0) {
-            --LINE_NUM_WIDTH;
-        }
+        for (int i = LINE_NUM_WIDTH - 1; i > 0; --i) { temp /= 10; }
+        if (temp == 0) { --LINE_NUM_WIDTH; }
     }
 }
 
-void freeRow(erow* row){
+void freeRow(erow* row) {
     free(row->text);
     free(row->hl);
 }
 
-void moveCursor(int key){
+void moveCursor(int key) {
     erow* row = E.cy >= E.numrows ? NULL : &E.row[E.cy];
     switch (key) {
     case ARROW_UP:
@@ -200,10 +172,8 @@ void moveCursor(int key){
             E.cx = E.oldcx;
             row = &E.row[E.cy];
             int tabs = countTabs(row->text, row->size);
-            if (E.cx < tabs * E.tabSize) {
-                E.cx -= E.cx % E.tabSize;
-            }
-        }else {
+            if (E.cx < tabs * E.tabSize) { E.cx -= E.cx % E.tabSize; }
+        } else {
             E.cx = 0;
         }
         break;
@@ -214,9 +184,7 @@ void moveCursor(int key){
                 E.cx = E.oldcx;
                 row = &E.row[E.cy];
                 int tabs = countTabs(row->text, row->size);
-                if (E.cx < tabs * E.tabSize) {
-                    E.cx -= E.cx % E.tabSize;
-                }
+                if (E.cx < tabs * E.tabSize) { E.cx -= E.cx % E.tabSize; }
             }
         }
         break;
@@ -224,10 +192,8 @@ void moveCursor(int key){
         if (E.cx > 0) {
             int tabs = countTabs(row->text, row->size);
             --E.cx;
-            while (E.cx < tabs * E.tabSize && E.cx % E.tabSize != 0) {
-                --E.cx;
-            }
-        }else if (E.cy > 0) {
+            while (E.cx < tabs * E.tabSize && E.cx % E.tabSize != 0) { --E.cx; }
+        } else if (E.cy > 0) {
             --E.cy;
             E.cx = E.row[E.cy].size;
         }
@@ -237,10 +203,8 @@ void moveCursor(int key){
         if (row && E.cx < row->size) {
             int tabs = countTabs(row->text, row->size);
             ++E.cx;
-            while (E.cx < tabs * E.tabSize && E.cx % E.tabSize != 0) {
-                ++E.cx;
-            }
-        }else if (row && E.cx == row->size) {
+            while (E.cx < tabs * E.tabSize && E.cx % E.tabSize != 0) { ++E.cx; }
+        } else if (row && E.cx == row->size) {
             ++E.cy;
             E.cx = 0;
         }
@@ -249,15 +213,11 @@ void moveCursor(int key){
     }
     row = E.cy >= E.numrows ? NULL : &E.row[E.cy];
     int rowlen = row ? row->size : 0;
-    if (E.cx > rowlen) {
-        E.cx = rowlen;
-    }
+    if (E.cx > rowlen) { E.cx = rowlen; }
 }
 
-void rowInsertChar(erow* row, int at, char c){
-    if (at > row->size) {
-        at = row->size;
-    }
+void rowInsertChar(erow* row, int at, char c) {
+    if (at > row->size) { at = row->size; }
     row->text = realloc(row->text, row->size + 2);
     memmove(&row->text[at + 1], &row->text[at], row->size - at + 1);
     ++row->size;
@@ -265,17 +225,15 @@ void rowInsertChar(erow* row, int at, char c){
     renderRow(row);
 }
 
-void rowDeleteChar(erow* row, int at){
-    if (at >= row->size) {
-        return;
-    }
+void rowDeleteChar(erow* row, int at) {
+    if (at >= row->size) { return; }
     memmove(&row->text[at], &row->text[at + 1], row->size - at);
     --row->size;
     renderRow(row);
     ++E.dirty;
 }
 
-void rowAppendStr(erow* row, char* s, size_t len){
+void rowAppendStr(erow* row, char* s, size_t len) {
     row->text = realloc(row->text, row->size + len + 1);
     memcpy(&row->text[row->size], s, len);
     row->size += len;
@@ -284,10 +242,10 @@ void rowAppendStr(erow* row, char* s, size_t len){
     ++E.dirty;
 }
 
-void insertNewline(){
+void insertNewline() {
     if (E.cx == 0) {
         insertRow(E.cy, "", 0);
-    }else {
+    } else {
         erow* row = &E.row[E.cy];
         insertRow(E.cy + 1, &row->text[E.cx], row->size - E.cx);
         row = &E.row[E.cy];
@@ -304,20 +262,16 @@ void insertNewline(){
     }
 }
 
-void insertChar(int c){
+void insertChar(int c) {
     ++E.dirty;
-    if (E.cy == E.numrows) {
-        insertRow(E.numrows, "", 0);
-    }
+    if (E.cy == E.numrows) { insertRow(E.numrows, "", 0); }
     rowInsertChar(&E.row[E.cy], E.cx, c);
     ++E.cx;
     E.oldcx = E.cx;
 }
 
-void deleteChar(){
-    if ((E.cx == 0 && E.cy == 0) || E.cy == E.numrows) {
-        return;
-    }
+void deleteChar() {
+    if ((E.cx == 0 && E.cy == 0) || E.cy == E.numrows) { return; }
     erow* row = &E.row[E.cy];
     if (E.cx > 0) {
         int tabs = countTabs(row->text, row->size);
@@ -329,7 +283,7 @@ void deleteChar(){
                 --E.cx;
             }
         }
-    }else {
+    } else {
         E.cx = E.row[E.cy - 1].size;
         rowAppendStr(&E.row[E.cy - 1], row->text, row->size);
         deleteRow(E.cy);
@@ -338,44 +292,39 @@ void deleteChar(){
     E.oldcx = E.cx;
 }
 
-int countTabs(char* s, size_t len){
+int countTabs(char* s, size_t len) {
     int indent;
-    for (indent = 0; indent < (int)len && s[indent] == ' '; ++indent) ;
+    for (indent = 0; indent < (int)len && s[indent] == ' '; ++indent)
+        ;
     return indent / E.tabSize;
 }
 
-void processKeypress(){
+void processKeypress() {
     static int quit_attempt = 0;
     int c = readKey();
 
     switch (c) {
-    case '\r':
-        insertNewline();
-        break;
+    case '\r': insertNewline(); break;
 
-    case '\t':
-        do {
-            insertChar(' ');
+    case '\t': do { insertChar(' ');
         } while (E.cx % E.tabSize != 0);
         break;
 
     case BACKSPACE:
     case DEL_KEY:
     case CTRLKEY('h'):
-        if (c == DEL_KEY) {
-            moveCursor(ARROW_RIGHT);
-        }
+        if (c == DEL_KEY) { moveCursor(ARROW_RIGHT); }
         deleteChar();
         break;
 
     case '\x1b':
-    case CTRLKEY('l'):
-        break;
+    case CTRLKEY('l'): break;
 
     case CTRLKEY('q'):
         if (!quit_attempt && E.dirty) {
             quit_attempt = 1;
-            setStatusMessage("WARNING: Unsaved changes! Press CTRL-Q again to force quit.");
+            setStatusMessage(
+                "WARNING: Unsaved changes! Press CTRL-Q again to force quit.");
             return;
         }
         exit(0);
@@ -384,7 +333,8 @@ void processKeypress(){
     case CTRLKEY('n'):
         if (!quit_attempt && E.dirty) {
             quit_attempt = 1;
-            setStatusMessage("WARNING: Unsaved changes! Press CTRL-N again to discard.");
+            setStatusMessage(
+                "WARNING: Unsaved changes! Press CTRL-N again to discard.");
             return;
         }
         initEditor();
@@ -393,7 +343,8 @@ void processKeypress(){
     case CTRLKEY('o'):
         if (!quit_attempt && E.dirty) {
             quit_attempt = 1;
-            setStatusMessage("WARNING: Unsaved changes! Press CTRL-O again to discard.");
+            setStatusMessage(
+                "WARNING: Unsaved changes! Press CTRL-O again to discard.");
             return;
         }
         char* newFile = prompt("Open file: %s (ESC to cancel)", NULL);
@@ -404,46 +355,32 @@ void processKeypress(){
         break;
 
     case CTRLKEY('s'):
-        if (E.dirty) {
-            saveFile();
-        }
+        if (E.dirty) { saveFile(); }
         break;
 
-    case CTRLKEY('f'):
-        find();
-        break;
+    case CTRLKEY('f'): find(); break;
 
     case CTRLKEY('r'):
-        if (getWindowSize(&E.height, &E.width) == -1) {
-            die("getWindowSize");
-        }
+        if (getWindowSize(&E.height, &E.width) == -1) { die("getWindowSize"); }
         E.height -= 2;
         break;
 
     case ARROW_UP:
     case ARROW_DOWN:
     case ARROW_RIGHT:
-    case ARROW_LEFT:
-        moveCursor(c);
-        break;
+    case ARROW_LEFT: moveCursor(c); break;
 
     case PAGE_UP:
-    case PAGE_DOWN:
-    {
+    case PAGE_DOWN: {
         if (c == PAGE_UP) {
             E.cy = E.scrollRow;
-        }else {
+        } else {
             E.cy = E.scrollRow + E.height - 1;
-            if (E.cy > E.numrows) {
-                E.cy = E.numrows;
-            }
+            if (E.cy > E.numrows) { E.cy = E.numrows; }
         }
         int times = E.height;
-        while (--times) {
-            moveCursor(c == PAGE_UP ? ARROW_UP : ARROW_DOWN);
-        }
-    }
-    break;
+        while (--times) { moveCursor(c == PAGE_UP ? ARROW_UP : ARROW_DOWN); }
+    } break;
 
     case HOME_KEY:
         E.cx = 0;
@@ -457,9 +394,7 @@ void processKeypress(){
         }
         break;
 
-    default:
-        insertChar(c);
-        break;
+    default: insertChar(c); break;
     }
     quit_attempt = 0;
 }
